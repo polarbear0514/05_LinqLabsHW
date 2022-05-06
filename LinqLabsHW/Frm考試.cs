@@ -185,7 +185,7 @@ namespace LinqLabs
             var q1 = from p in Student100
                      orderby p descending
                      group p by p into g
-                     select new { Scores = g.Key, Count = g.Count(), Rate = g.Count()+".00%" };
+                     select new { Scores = g.Key, Count = g.Count(), Rate = ((decimal)g.Count()/100).ToString("P") };
             this.dataGridView3.DataSource = q1.ToList();
         }
 
@@ -199,9 +199,9 @@ namespace LinqLabs
                      from od in o.Order_Details
                      join p in this.dbContext.Products on od.ProductID equals p.ProductID
                      join c in this.dbContext.Categories on p.CategoryID equals c.CategoryID
-                     select new { Category = c.CategoryName, Price = Math.Round(od.Quantity * (1 - od.Discount) * (int)od.UnitPrice, 2) };
-            var q5 = (from t in q4.GroupBy(n => n.Category)
-                      select new { Category = t.Key, Total = Math.Round(t.Sum(n => n.Price), 2) }).OrderByDescending(n => n.Total);
+                     select new { Year=o.OrderDate.Value.Year,Category = c.CategoryName, Price = Math.Round(od.Quantity * (1 - od.Discount) * (int)od.UnitPrice, 2) };
+            var q5 = (from t in q4.GroupBy(n =>new { n.Year,n.Category })
+                      select new { Year=t.Key.Year,Category = t.Key.Category, Total = Math.Round(t.Sum(n => n.Price), 2) }).OrderByDescending(n => new { n.Year,n.Total });
             this.dataGridView3.DataSource=q5.ToList();
             // 那一年總銷售最好 ? 那一年總銷售最不好 ? 
             var q = from o in this.dbContext.Orders
